@@ -67,14 +67,17 @@ class PermissionBuilder internal constructor(val activity: FragmentActivity, val
         }
 
     }
-    
+
     /**
      * 立即发起请求
      */
     private fun requestNow(permissions: List<String>, callback: RequestCallback) {
-
+        getInvisibleFragment().requestNow(this, explainReasonCallback, explainReasonCallback2, *permissions.toTypedArray())
     }
 
+    fun test(a : String){
+
+    }
     private fun getInvisibleFragment() : InvisibleFragment{
         val fragmentManager = activity.supportFragmentManager
         val existedFragment = fragmentManager.findFragmentByTag(TAG)

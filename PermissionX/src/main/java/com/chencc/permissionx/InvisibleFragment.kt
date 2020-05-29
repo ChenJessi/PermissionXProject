@@ -29,4 +29,21 @@ typealias ExplainReasonCallback2 = (deniedList : MutableList<String>, beforeRequ
 
 const val TAG = "InvisibleFragment"
 
-class InvisibleFragment : Fragment(){}
+class InvisibleFragment : Fragment(){
+
+    /**
+     * 立即发起请求
+     */
+    fun requestNow(builder: PermissionBuilder, callback: ExplainReasonCallback?, callback2: ExplainReasonCallback2?, vararg permission: String){
+
+    }
+
+
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    }
+}
