@@ -7,6 +7,8 @@ import org.junit.Test
 import org.junit.runner.RunWith
 
 import org.junit.Assert.*
+import java.lang.reflect.Proxy
+import java.security.Policy
 
 /**
  * Instrumented test, which will execute on an Android device.

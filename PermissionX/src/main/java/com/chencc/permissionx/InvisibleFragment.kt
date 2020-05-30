@@ -1,6 +1,8 @@
 package com.chencc.permissionx
 
+import android.content.pm.PackageManager
 import androidx.fragment.app.Fragment
+import kotlin.collections.withIndex as withIndex
 
 /**
  * [PermissionBuilder.request] callback
@@ -29,21 +31,102 @@ typealias ExplainReasonCallback2 = (deniedList : MutableList<String>, beforeRequ
 
 const val TAG = "InvisibleFragment"
 
+const val PERMISSION_CODE = 1
+
+const val SETTINGS_CODE = 2
+
 class InvisibleFragment : Fragment(){
 
+    private lateinit var permissionBuilder: PermissionBuilder
+    // 权限请求结果回调
+    private lateinit var requestCallback: RequestCallback
+
+    /**
+     * 说明请求原因
+     */
+    private  var explainReasonCallback: ExplainReasonCallback? = null
+    private  var explainReasonCallback2: ExplainReasonCallback2? = null
     /**
      * 立即发起请求
      */
-    fun requestNow(builder: PermissionBuilder, callback: ExplainReasonCallback?, callback2: ExplainReasonCallback2?, vararg permission: String){
-
+    fun requestNow(builder: PermissionBuilder, explainReasonCallback: ExplainReasonCallback?, explainReasonCallback2: ExplainReasonCallback2?,  requestCallback: RequestCallback , vararg permission: String){
+        this.permissionBuilder = builder
+        this.explainReasonCallback = explainReasonCallback
+        this.explainReasonCallback2 = explainReasonCallback2
+        this.requestCallback = requestCallback
+        requestPermissions(permission, PERMISSION_CODE)
     }
 
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        if (requestCode == PERMISSION_CODE){
+            // 本次请求 权限申请成功的列表
+            val grantedList = ArrayList<String>()
+            // 本次请求 需要显示原因的权限，被拒绝后显示原因重新发起请求
+            val showReasonList = ArrayList<String>()
+            // 本次请求 永久拒绝的权限，此时只能提示用户去设置打开
+            val forwardList = ArrayList<String>()
+            //权限请求结果
+            for ((index, result) in grantResults.withIndex()){
+                if (result == PackageManager.PERMISSION_GRANTED){
+                    grantedList.add(permissions[index])
+                    //删除保存的拒绝权限和永久拒绝权限
+                    permissionBuilder.deniedPermissions.remove(permissions[index])
+                    permissionBuilder.permanentDeniedPermissions.remove(permissions[index])
+                } else {
+                    //是否需要说明原因
+                    /**
+                     * shouldShowRequestPermissionRationale
+                     * 引用网络：
+                     * 1，在允许询问时返回true ；
+                     * 2，在权限通过 或者权限被拒绝并且禁止询问时返回false
+                     * 但是有一个例外，就是从来没有询问过的时候，也是返回的false 所以单纯的使用shouldShowRequestPermissionRationale去做什么判断，是没用的，
+                     * 只能在请求权限回调后再使用。
+                     * Google的原意是：
+                     * 1，没有申请过权限，申请就是了，所以返回false；
+                     * 2，申请了用户拒绝了，那你就要提示用户了，所以返回true；
+                     * 3，用户选择了拒绝并且不再提示，那你也不要申请了，也不要提示用户了，所以返回false；
+                     * 4，已经允许了，不需要申请也不需要提示，所以返回false
+                     */
+                    /**
+                     * 申请了用户拒绝了，那你就要提示用户了，所以返回true；
+                     * 此时可以重新申请 或者 提示
+                     */
+                    val shouldShowReason = shouldShowRequestPermissionRationale(permissions[index])
+                    if (shouldShowReason){
+                        // 被拒绝
+                        showReasonList.add(permissions[index])
+                        permissionBuilder.deniedPermissions.add(permissions[index])
+                    } else {
+                        // 被永久拒绝
+                        forwardList.add(permissions[index])
+                        permissionBuilder.permanentDeniedPermissions.add(permissions[index])
+                        permissionBuilder.deniedPermissions.remove(permissions[index])
+                    }
+                }
+            }
+            // 每次请求后 刷新 权限集
+            // 因为用户随时可能更改权限
+            permissionBuilder.grantedPermissions.clear()
+            permissionBuilder.grantedPermissions.addAll(grantedList)
+            val allGranted = permissionBuilder.grantedPermissions.size == permissionBuilder.allPermissions.size
+            if (allGranted){  // 所有权限都请求成功
+                requestCallback(true, permissionBuilder.allPermissions, listOf() )
+            } else {
+                // 用户拒绝了全部或者部分权限
+                //是否需要走请求结果回调
+                var goesToRequestCallback = true
+                // 判断是否需要说明原因
+                if ((explainReasonCallback != null || explainReasonCallback2 != null) && showReasonList.isNotEmpty()){
+                    // 这时候会走请求原因的回调，就不走请求结果回调了
+                    goesToRequestCallback = false
+                    explainReasonCallback2?.let {
+
+                    }?:
+                    explainReasonCallback?.let {}
+                }
+            }
+
+        }
     }
 }

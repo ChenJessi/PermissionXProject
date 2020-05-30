@@ -6,8 +6,18 @@ import androidx.fragment.app.FragmentActivity
 /**
  * 提供 PermissionX 的 api
  */
-class PermissionBuilder internal constructor(val activity: FragmentActivity, val allPermissions : List<String>){
+class PermissionBuilder internal constructor(private val activity: FragmentActivity, internal val allPermissions : List<String>){
 
+
+    /**
+     * 被拒绝权限
+     */
+    internal val deniedPermissions = HashSet<String>()
+
+    /**
+     * 被永久拒绝权限
+     */
+    internal val permanentDeniedPermissions = HashSet<String>()
     /**
      * 请求权限说明原因
      */
@@ -72,7 +82,7 @@ class PermissionBuilder internal constructor(val activity: FragmentActivity, val
      * 立即发起请求
      */
     private fun requestNow(permissions: List<String>, callback: RequestCallback) {
-        getInvisibleFragment().requestNow(this, explainReasonCallback, explainReasonCallback2, *permissions.toTypedArray())
+        getInvisibleFragment().requestNow(this, explainReasonCallback, explainReasonCallback2, callback, *permissions.toTypedArray())
     }
 
     fun test(a : String){
