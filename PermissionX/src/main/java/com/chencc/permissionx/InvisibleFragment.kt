@@ -16,9 +16,9 @@ typealias RequestCallback = (allGranted : Boolean, grantedList : List<String>, d
 /**
  * 请求权限原因
  * [PermissionBuilder.onExplainRequestReason]
- * @param deniedList 拒绝权限列表 用来重新发起请求
+ * @param deniedList  回调拒绝权限列表  并重新发起请求
  */
-typealias ExplainReasonCallback = (deniedList : MutableList<String>) -> Unit
+typealias ExplainReasonCallback = ExplainReasonScope.(deniedlist : MutableList<String>) -> Unit
 
 /**
  * 请求权限原因
@@ -26,7 +26,14 @@ typealias ExplainReasonCallback = (deniedList : MutableList<String>) -> Unit
  * @param deniedList 拒绝权限列表 用来重新发起请求
  * @param beforeRequest 标记是请求之前还是之后
  */
-typealias ExplainReasonCallback2 = (deniedList : MutableList<String>, beforeRequest : Boolean) -> Unit
+typealias ExplainReasonCallback2 = ExplainReasonScope.(deniedList : MutableList<String>, beforeRequest : Boolean) -> Unit
+
+/**
+ * 跳转至设置页面的回调
+ * 用户永久拒绝了之后，需要跳转至设置页面打开权限
+ * @param deniedlist  用户永久拒绝的权限，此时代码层面无法操作，只能引导用户跳转去设置页面打开
+ */
+typealias ForwardToSettingsCallback = ForwardToSettingsScope.(deniedlist : MutableList<String>) -> Unit
 
 
 const val TAG = "InvisibleFragment"
@@ -46,13 +53,16 @@ class InvisibleFragment : Fragment(){
      */
     private  var explainReasonCallback: ExplainReasonCallback? = null
     private  var explainReasonCallback2: ExplainReasonCallback2? = null
+
+    private  var forwardToSettingsCallback : ForwardToSettingsCallback? = null
     /**
      * 立即发起请求
      */
-    fun requestNow(builder: PermissionBuilder, explainReasonCallback: ExplainReasonCallback?, explainReasonCallback2: ExplainReasonCallback2?,  requestCallback: RequestCallback , vararg permission: String){
+    fun requestNow(builder: PermissionBuilder, explainReasonCallback: ExplainReasonCallback?, explainReasonCallback2: ExplainReasonCallback2?, forwardToSettingsCallback : ForwardToSettingsCallback? , requestCallback: RequestCallback , vararg permission: String){
         this.permissionBuilder = builder
         this.explainReasonCallback = explainReasonCallback
         this.explainReasonCallback2 = explainReasonCallback2
+        this.forwardToSettingsCallback = forwardToSettingsCallback
         this.requestCallback = requestCallback
         requestPermissions(permission, PERMISSION_CODE)
     }
@@ -62,7 +72,7 @@ class InvisibleFragment : Fragment(){
         if (requestCode == PERMISSION_CODE){
             // 本次请求 权限申请成功的列表
             val grantedList = ArrayList<String>()
-            // 本次请求 需要显示原因的权限，被拒绝后显示原因重新发起请求
+            // 本次请求 需要显示原因的权限，被拒绝后可以显示原因重新发起请求
             val showReasonList = ArrayList<String>()
             // 本次请求 永久拒绝的权限，此时只能提示用户去设置打开
             val forwardList = ArrayList<String>()
@@ -114,19 +124,38 @@ class InvisibleFragment : Fragment(){
                 requestCallback(true, permissionBuilder.allPermissions, listOf() )
             } else {
                 // 用户拒绝了全部或者部分权限
-                //是否需要走请求结果回调
+                /**
+                 * goesToRequestCallback  是否立即回调到最终 requestCallback
+                 * true : 立即回调到 requestCallback 显示最终结果
+                 * false : 将回调交给 explainReasonCallback 或者  forwardToSettingsCallback 处理，用户可能还需要其他操作
+                 */
                 var goesToRequestCallback = true
                 // 判断是否需要说明原因
                 if ((explainReasonCallback != null || explainReasonCallback2 != null) && showReasonList.isNotEmpty()){
                     // 这时候会走请求原因的回调，就不走请求结果回调了
                     goesToRequestCallback = false
                     explainReasonCallback2?.let {
-
+                        permissionBuilder.explainReasonScope.it(showReasonList, false)
                     }?:
-                    explainReasonCallback?.let {}
+                    explainReasonCallback?.let {
+                        permissionBuilder.explainReasonScope.it(showReasonList)
+                    }
                 }
-            }
+                // forwardToSettingsCallback and forwardList 不为空的话，需要跳转至设置页面
+                else if (forwardToSettingsCallback != null && forwardList.isNotEmpty()){
+                    forwardToSettingsCallback?.let {
+                        permissionBuilder.forwardToSettingsScope.it(forwardList)
+                    }
+                }
+                // 需要 回调最终结果给开发者
+                if (goesToRequestCallback ){
+                    val deniedList = ArrayList<String>()
+                    deniedList.addAll(permissionBuilder.deniedPermissions)
+                    deniedList.addAll(permissionBuilder.permanentDeniedPermissions)
+                    requestCallback(false, permissionBuilder.grantedPermissions.toList(), deniedList)
+                }
 
+            }
         }
     }
 }
