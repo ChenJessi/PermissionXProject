@@ -83,7 +83,7 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
 
     /**
      *showHandlePermissionDialog 显示对话框  / 权限申请说明原因对话框 or 跳转设置页面对话框
-     * @param showReasonOrGoSettings 是否是跳转至设置页面
+     * @param showReasonOrGoSettings 是重新请求 or 跳转至设置页面
      * @param permissions 权限集合
      * @param message 弹窗显示的信息
      * @param confirmText 确认按钮文字
@@ -97,11 +97,26 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
             !grantedPermissions.contains(it) && allPermissions.contains(it)
         }
         if (filterPermission.isEmpty()){
-            
+            onPermissionDialogCancel()
             return
         }
         AlertDialog.Builder(activity).apply {
-
+            setMessage(message)
+            setCancelable(cancelText.isNullOrBlank())
+            setPositiveButton(confirmText) {_,_-> Unit
+                if (showReasonOrGoSettings){
+                    //重新请求
+                    requestAgain()
+                }else{  //跳转设置页
+                    forwardToSettings()
+                }
+            }
+            cancelText?.let {
+                setNegativeButton(cancelText){_,_ -> Unit
+                    onPermissionDialogCancel()
+                }
+            }
+            show()
         }
     }
 
@@ -137,10 +152,27 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
     }
 
     /**
+     * 请求被拒绝之后，说明原因重新发起请求
+     */
+    private fun requestAgain(){
+        
+    }
+
+
+    /**
      * 立即发起请求
      */
     private fun requestNow(permissions: List<String>, callback: RequestCallback) {
         getInvisibleFragment().requestNow(this, explainReasonCallback, explainReasonCallback2, forwardToSettingsCallback, callback, *permissions.toTypedArray())
+    }
+
+
+    /**
+     * 跳转至设置页面
+     * 权限被永久拒绝之后，需跳转至设置页打开
+     */
+    private fun forwardToSettings(){
+
     }
 
 
@@ -153,6 +185,19 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
             val invisibleFragment = InvisibleFragment()
             fragmentManager.beginTransaction().add(invisibleFragment, TAG).commitNow()
             invisibleFragment
+        }
+    }
+
+    /**
+     * 如果用户拒绝了权限, 并且 调用了 [ExplainReasonScope.showRequestReasonDialog] 或者 [ForwardToSettingsScope.showForwardToSettingsDialog]
+     * 用户点击了弹窗取消按钮需要调用这个方法
+     */
+    private fun onPermissionDialogCancel(){
+        val deniedList = ArrayList<String>()
+        deniedList.addAll(deniedPermissions)
+        deniedList.addAll(permanentDeniedPermissions)
+        requestCallback?.let {
+            it(deniedList.isEmpty(), grantedPermissions.toList(), deniedList)
         }
     }
 }
