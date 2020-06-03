@@ -106,7 +106,7 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
             setPositiveButton(confirmText) {_,_-> Unit
                 if (showReasonOrGoSettings){
                     //重新请求
-                    requestAgain()
+                    requestAgain(filterPermission)
                 }else{  //跳转设置页
                     forwardToSettings()
                 }
@@ -144,18 +144,30 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
         }
         // 在请求权限之前说明原因  & 否则立即就发起请求
         if (explainReasonBeforeRequest && (explainReasonCallback != null || explainReasonCallback2 != null)){
-
+            explainReasonBeforeRequest = false
+            deniedPermissions.addAll(requestList)
+            explainReasonCallback2?.let {
+                explainReasonScope.it(requestList, true)
+            } ?:
+            explainReasonCallback?.let { explainReasonScope.it(requestList) }
         } else {
             requestNow(allPermissions, callback)
         }
-
     }
 
     /**
      * 请求被拒绝之后，说明原因重新发起请求
      */
-    private fun requestAgain(){
-        
+    private fun requestAgain(permissions: List<String>){
+        if (permissions.isEmpty()){
+            onPermissionDialogCancel()
+            return
+        }
+        requestCallback?.let {
+            val permissionSet = HashSet(grantedPermissions)
+            permissionSet.addAll(permissions)
+            requestNow(permissionSet.toList(), it)
+        }
     }
 
 

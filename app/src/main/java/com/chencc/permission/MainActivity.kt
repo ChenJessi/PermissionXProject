@@ -16,11 +16,13 @@ class MainActivity : AppCompatActivity() {
         textView.setOnClickListener {
             PermissionX.init(this)
                 .permissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO)
+                .explainReasonBeforeRequest()
                 .explainReasonCallback{deniedlist ->
                     Log.e(TAG, "explainReasonCallback:  ${deniedlist}" )
+                    showRequestReasonDialog(deniedlist, "申请的权限为应用必须的权限。", "确定")
                 }
                 .onForwardToSettings { deniedlist ->
-                    Log.e(TAG, "explainReasonCallback:  ${deniedlist}" )
+                    Log.e(TAG, "onForwardToSettings:  ${deniedlist}" )
                 }
                 .request { allGranted, grantedList, deniedList ->
                     if (allGranted){

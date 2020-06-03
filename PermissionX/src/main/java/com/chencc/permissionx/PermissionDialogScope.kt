@@ -1,5 +1,7 @@
 package com.chencc.permissionx
 
+import org.w3c.dom.Text
+
 
 /**
  *  为 [InvisibleFragment.ExplainReasonCallback] 提供特定范围
@@ -9,8 +11,8 @@ package com.chencc.permissionx
  *   fun showRequestReasonDialog 重新发起请求的弹窗
  */
 class ExplainReasonScope (private val permissionBuilder : PermissionBuilder){
-    fun showRequestReasonDialog(){
-
+    fun showRequestReasonDialog(permissions : List<String>, message : String, confirmText : String , cancelText : String? = null ){
+        permissionBuilder.showHandlePermissionDialog(true, permissions, message, confirmText, cancelText)
     }
 }
 
