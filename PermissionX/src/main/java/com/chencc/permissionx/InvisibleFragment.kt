@@ -1,5 +1,6 @@
 package com.chencc.permissionx
 
+import android.content.Intent
 import android.content.pm.PackageManager
 import androidx.fragment.app.Fragment
 import kotlin.collections.withIndex as withIndex
@@ -143,18 +144,35 @@ class InvisibleFragment : Fragment(){
                 }
                 // forwardToSettingsCallback and forwardList 不为空的话，需要跳转至设置页面
                 else if (forwardToSettingsCallback != null && forwardList.isNotEmpty()){
+                    goesToRequestCallback = false
                     forwardToSettingsCallback?.let {
                         permissionBuilder.forwardToSettingsScope.it(forwardList)
                     }
                 }
                 // 需要 回调最终结果给开发者
-                if (goesToRequestCallback ){
+                // 如果没有设置 explainReasonCallback2 or explainReasonCallback 的情况下全都回调 requestCallback
+                // 如果设置了  explainReasonCallback2 or explainReasonCallback  但是没有设置 showRequestReasonDialog 或 showForwardToSettingsDialog 的时候也回调到 requestCallback
+                if (goesToRequestCallback || !permissionBuilder.showDialogCalled){
                     val deniedList = ArrayList<String>()
                     deniedList.addAll(permissionBuilder.deniedPermissions)
                     deniedList.addAll(permissionBuilder.permanentDeniedPermissions)
                     requestCallback(false, permissionBuilder.grantedPermissions.toList(), deniedList)
                 }
 
+            }
+        }
+    }
+
+    /**
+     * 在设置页更改权限之后返回结果
+     */
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == SETTINGS_CODE){
+            if (::permissionBuilder.isInitialized){
+                // 如果 permissionBuilder 已初始化 直接重新请求
+                // 某些手机 从设置切回来 permissionBuilder 可能未初始化
+                permissionBuilder.requestAgain(permissionBuilder.forwardPermissions)
             }
         }
     }

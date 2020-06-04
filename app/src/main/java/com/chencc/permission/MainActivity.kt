@@ -19,10 +19,11 @@ class MainActivity : AppCompatActivity() {
                 .explainReasonBeforeRequest()
                 .explainReasonCallback{deniedlist ->
                     Log.e(TAG, "explainReasonCallback:  ${deniedlist}" )
-                    showRequestReasonDialog(deniedlist, "申请的权限为应用必须的权限。", "确定")
+                    showRequestReasonDialog(deniedlist, "申请的权限为应用必须的权限。", "确定", "取消")
                 }
                 .onForwardToSettings { deniedlist ->
                     Log.e(TAG, "onForwardToSettings:  ${deniedlist}" )
+                    showForwardToSettingsDialog(deniedlist, "申请的权限为应用必须的权限。", "确定", "取消")
                 }
                 .request { allGranted, grantedList, deniedList ->
                     if (allGranted){

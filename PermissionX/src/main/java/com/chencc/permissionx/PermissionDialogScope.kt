@@ -25,7 +25,7 @@ class ExplainReasonScope (private val permissionBuilder : PermissionBuilder){
  *   fun showForwardToSettingsDialog  跳转设置页面弹窗
  */
 class ForwardToSettingsScope(private val permissionBuilder: PermissionBuilder){
-    fun showForwardToSettingsDialog(){
-
+    fun showForwardToSettingsDialog(permissions : List<String>, message : String, confirmText : String , cancelText : String? = null ){
+        permissionBuilder.showHandlePermissionDialog(false, permissions, message, confirmText, cancelText)
     }
 }

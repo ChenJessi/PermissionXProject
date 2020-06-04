@@ -2,7 +2,10 @@ package com.chencc.permissionx
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
+import android.net.Uri
 import android.os.PersistableBundle
+import android.provider.Settings
 import androidx.fragment.app.FragmentActivity
 
 /**
@@ -19,6 +22,13 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
      * 被永久拒绝权限
      */
     internal val permanentDeniedPermissions = HashSet<String>()
+
+    /**
+     * 被永久拒绝，需要转发到设置页面打开的权限
+     */
+    internal val forwardPermissions = ArrayList<String>()
+
+
     /**
      * 请求权限说明原因
      */
@@ -55,6 +65,7 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
      * 是否显示了对话框
      * [ExplainReasonScope.showRequestReasonDialog] or [ForwardToSettingsScope.showForwardToSettingsDialog]
      * 如果未显示对话框则会直接回调 requestCallback
+     * 显示了对话框则交给对话框处理
      */
     var showDialogCalled = false
 
@@ -108,7 +119,7 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
                     //重新请求
                     requestAgain(filterPermission)
                 }else{  //跳转设置页
-                    forwardToSettings()
+                    forwardToSettings(filterPermission)
                 }
             }
             cancelText?.let {
@@ -158,7 +169,7 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
     /**
      * 请求被拒绝之后，说明原因重新发起请求
      */
-    private fun requestAgain(permissions: List<String>){
+    internal fun requestAgain(permissions: List<String>){
         if (permissions.isEmpty()){
             onPermissionDialogCancel()
             return
@@ -183,8 +194,12 @@ class PermissionBuilder internal constructor(private val activity: FragmentActiv
      * 跳转至设置页面
      * 权限被永久拒绝之后，需跳转至设置页打开
      */
-    private fun forwardToSettings(){
-
+    private fun forwardToSettings(permissions: List<String>){
+        forwardPermissions.addAll(permissions)
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", activity.packageName, null)
+        intent.data = uri
+        getInvisibleFragment().startActivityForResult(intent, SETTINGS_CODE)
     }
 
 
