@@ -15,24 +15,24 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val textView = findViewById<TextView>(R.id.textView)
         textView.setOnClickListener {
-            PermissionX.init(this)
-                .permissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO)
-                .explainReasonBeforeRequest()
-                .explainReasonCallback{deniedlist ->
-                    Log.e(TAG, "explainReasonCallback:  ${deniedlist}" )
-                    showRequestReasonDialog(deniedlist, "申请的权限为应用必须的权限。", "确定", "取消")
-                }
-                .onForwardToSettings { deniedlist ->
-                    Log.e(TAG, "onForwardToSettings:  ${deniedlist}" )
-                    showForwardToSettingsDialog(deniedlist, "申请的权限为应用必须的权限。", "确定", "取消")
-                }
-                .request { allGranted, grantedList, deniedList ->
-                    if (allGranted){
-                        Toast.makeText(this@MainActivity, "allGranted", Toast.LENGTH_LONG).show()
-                    } else {
-                        Toast.makeText(this@MainActivity, "denied :  $deniedList", Toast.LENGTH_LONG).show()
-                    }
-                }
+//            PermissionX.init(this)
+//                .permissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO)
+//                .explainReasonBeforeRequest()
+//                .explainReasonCallback{deniedlist ->
+//                    Log.e(TAG, "explainReasonCallback:  ${deniedlist}" )
+//                    showRequestReasonDialog(deniedlist, "申请的权限为应用必须的权限。", "确定", "取消")
+//                }
+//                .onForwardToSettings { deniedlist ->
+//                    Log.e(TAG, "onForwardToSettings:  ${deniedlist}" )
+//                    showForwardToSettingsDialog(deniedlist, "申请的权限为应用必须的权限。", "确定", "取消")
+//                }
+//                .request { allGranted, grantedList, deniedList ->
+//                    if (allGranted){
+//                        Toast.makeText(this@MainActivity, "allGranted", Toast.LENGTH_LONG).show()
+//                    } else {
+//                        Toast.makeText(this@MainActivity, "denied :  $deniedList", Toast.LENGTH_LONG).show()
+//                    }
+//                }
         }
     }
 }
