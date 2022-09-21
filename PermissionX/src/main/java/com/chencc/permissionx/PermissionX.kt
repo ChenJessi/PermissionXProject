@@ -8,6 +8,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import java.security.PermissionCollection
 
+
 object PermissionX {
     /**
      * 初始化工作
