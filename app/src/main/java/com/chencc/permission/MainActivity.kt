@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
+import com.chencc.permissionx.PermissionBuilder
 import com.chencc.permissionx.PermissionX
 
 class MainActivity : AppCompatActivity() {
@@ -33,6 +34,9 @@ class MainActivity : AppCompatActivity() {
 //                        Toast.makeText(this@MainActivity, "denied :  $deniedList", Toast.LENGTH_LONG).show()
 //                    }
 //                }
+            PermissionBuilder(this, null, mutableSetOf(), mutableSetOf()).request { b, list, list2 ->
+
+            }
         }
     }
 }

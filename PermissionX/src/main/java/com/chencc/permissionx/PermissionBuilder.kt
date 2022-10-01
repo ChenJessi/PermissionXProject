@@ -11,9 +11,17 @@ import android.os.PersistableBundle
 import android.provider.Settings
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
+import com.chencc.permissionx.request.*
+import com.chencc.permissionx.request.RequestBackgroundLocationPermission
+import com.chencc.permissionx.request.RequestInstallPackagesPermission
+import com.chencc.permissionx.request.RequestManageExternalStoragePermission
+import com.chencc.permissionx.request.RequestNormalPermissions
 
 /**
  * 提供 PermissionX 的 api
+ *
+ * @property normalPermissionSet 需要申请的普通权限集
+ * @property specialPermissionsSet 需要申请的特殊权限集
  */
 class PermissionBuilder (
     fragmentActivity: FragmentActivity? ,
@@ -70,7 +78,15 @@ class PermissionBuilder (
         // activity destroyed.
         lockOrientation()
 
+        // 创建请求任务链， 先请求 RequestNormalPermissions 普通权限，再请求 RequestBackgroundLocationPermission
+        val requestChain = RequestChain();
+        requestChain.addTaskToChain(RequestNormalPermissions(this))
+        requestChain.addTaskToChain(RequestBackgroundLocationPermission(this))
+        requestChain.addTaskToChain(RequestManageExternalStoragePermission(this))
+        requestChain.addTaskToChain(RequestInstallPackagesPermission(this))
+        requestChain.addTaskToChain(RequestBodySensorsBackgroundPermission(this))
 
+        requestChain.runTask()
     }
 
     /**
@@ -91,4 +107,9 @@ class PermissionBuilder (
     }
 
 
+    /**
+     *  是否需要发送通知权限
+     *  @return 如果需要发送通知权限，返回true， 否则返回false
+     */
+    fun shouldRequestNotificationPermission() = specialPermissions.contains(PermissionX.POST_NOTIFICATIONS)
 }

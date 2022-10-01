@@ -13,9 +13,9 @@ object PermissionX {
     /**
      * 初始化工作
      */
-    fun init(activity: FragmentActivity) = PermissionCollection(activity)
+    fun init(activity: FragmentActivity) = PermissionMediator(activity)
 
-    fun init(fragment: Fragment) = PermissionCollection(fragment.requireActivity())
+    fun init(fragment: Fragment) = PermissionMediator(fragment.requireActivity())
 
     /**
      * 检查权限是否已经被授予
@@ -34,12 +34,4 @@ object PermissionX {
      * Android T 引入
      */
     const val POST_NOTIFICATIONS = "android.permission.POST_NOTIFICATIONS"
-}
-
-/**
- * 用于传递权限数据
- */
-class PermissionCollection internal constructor(private val activity: FragmentActivity) {
-
-    //fun permissions(vararg permissions: String) = PermissionBuilder(activity, permissions.toList())
 }

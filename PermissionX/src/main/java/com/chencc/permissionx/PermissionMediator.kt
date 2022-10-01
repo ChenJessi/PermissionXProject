@@ -8,7 +8,7 @@ import com.chencc.permissionx.constant.allSpecialPermissions
 import com.chencc.permissionx.request.RequestBackgroundLocationPermission
 import com.chencc.permissionx.request.RequestBodySensorsBackgroundPermission
 
-private class PermissionMediator {
+class PermissionMediator {
     private var activity: FragmentActivity? = null
     private var fragment: Fragment? = null
 
