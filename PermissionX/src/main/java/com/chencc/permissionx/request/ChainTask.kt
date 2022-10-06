@@ -8,6 +8,11 @@ package com.chencc.permissionx.request
 interface ChainTask {
 
     /**
+     * 获取 explainScope 用于显示 dialog
+     * @return ExplainScope
+     */
+    fun getExplainScope() : ExplainScope
+    /**
      * 执行请求的逻辑
      */
     fun request()

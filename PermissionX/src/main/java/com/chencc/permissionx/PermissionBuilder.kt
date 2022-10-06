@@ -16,6 +16,7 @@ import com.chencc.permissionx.request.RequestBackgroundLocationPermission
 import com.chencc.permissionx.request.RequestInstallPackagesPermission
 import com.chencc.permissionx.request.RequestManageExternalStoragePermission
 import com.chencc.permissionx.request.RequestNormalPermissions
+import java.util.LinkedHashSet
 
 /**
  * 提供 PermissionX 的 api
@@ -50,8 +51,29 @@ class PermissionBuilder (
         this.specialPermissions = specialPermissionsSet
     }
 
-    // 是否展示网络请求的弹窗
+    // 是否在请求之前展示请求原因都弹窗
+    @JvmField
     var explainReasonBeforeRequest = false;
+
+    /**
+     * onExplainRequestReason 的回调
+     * 请求拒绝之后解释请求原因的回调
+     * ExplainScope
+     * List<String>)->Unit deniedList 拒绝的权限列表，应当解释要获取这些权限的原因
+     */
+    @JvmField
+    var explainReasonCallback : ((ExplainScope,List<String>)->Unit)? = null
+
+    /**
+     * onExplainRequestReason 的回调
+     * 解释请求原因的参数
+     * ExplainScope
+     * List<String>)->Unit deniedList 拒绝的权限列表，应当解释要获取这些权限的原因
+     * Boolean 是否是请求之前  true 请求之前， false 请求之后
+     */
+    @JvmField
+    var explainReasonCallbackWithBeforeParam : ((ExplainScope,List<String>, Boolean)->Unit)? = null
+
 
     var requestCallback : ((Boolean, List<String>, List<String>)->Unit)? = null
 
@@ -60,6 +82,16 @@ class PermissionBuilder (
      * permission request finished.
       */
     private var originRequestOrientation = ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+
+    /**
+     * 记录已授予的权限
+     */
+    val grantedPermissions : MutableSet<String> = LinkedHashSet()
+
+    /**
+     * 拒绝的权限集合
+     */
+    val deniedPermissions : MutableSet<String> = LinkedHashSet()
 
     /**
      * @param allGranted 是否授予了所有权限,
@@ -88,6 +120,19 @@ class PermissionBuilder (
 
         requestChain.runTask()
     }
+
+    /**
+     * 立即请求权限
+     * @param permissions Set<String>  权限集合
+     * @param chainTask ChainTask 当前的请求任务
+     */
+    fun requestNow(permissions : Set<String>, chainTask: ChainTask){
+
+    }
+
+
+
+
 
     /**
      * Lock the screen orientation. Activity couldn't rotate with sensor.

@@ -13,4 +13,15 @@ internal abstract class BaseTask(@JvmField var pb : PermissionBuilder) : ChainTa
      */
     @JvmField
     var next : ChainTask? = null
+
+    /**
+     * Provide specific scopes for explainReasonCallback for specific functions to call.
+     */
+    private var explainReasonScope = ExplainScope(pb, this)
+
+    override fun getExplainScope() = explainReasonScope
+
+    override fun finish() {
+
+    }
 }
