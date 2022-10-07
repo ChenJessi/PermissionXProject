@@ -1,8 +1,8 @@
-package com.chencc.permissionx.request
+package com.jessi.permissionx.request
 
 import android.util.Log
-import com.chencc.permissionx.PermissionBuilder
-import com.chencc.permissionx.PermissionX
+import com.jessi.permissionx.PermissionBuilder
+import com.jessi.permissionx.PermissionX
 
 /**
  * 普通权限请求的实现

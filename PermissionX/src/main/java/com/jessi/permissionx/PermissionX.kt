@@ -1,4 +1,4 @@
-package com.chencc.permissionx
+package com.jessi.permissionx
 
 import android.content.Context
 import android.content.pm.PackageManager

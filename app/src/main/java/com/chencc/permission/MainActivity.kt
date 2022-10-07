@@ -6,8 +6,8 @@ import android.os.Bundle
 import android.util.Log
 import android.widget.TextView
 import android.widget.Toast
-import com.chencc.permissionx.PermissionBuilder
-import com.chencc.permissionx.PermissionX
+import com.jessi.permissionx.PermissionBuilder
+import com.jessi.permissionx.PermissionX
 
 class MainActivity : AppCompatActivity() {
     private  val TAG = "MainActivity"

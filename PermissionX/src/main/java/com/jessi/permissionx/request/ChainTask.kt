@@ -1,4 +1,4 @@
-package com.chencc.permissionx.request
+package com.jessi.permissionx.request
 
 /**
  * 请求权限的任务的接口

@@ -1,6 +1,6 @@
-package com.chencc.permissionx.request
+package com.jessi.permissionx.request
 
-import com.chencc.permissionx.PermissionBuilder
+import com.jessi.permissionx.PermissionBuilder
 
 /**
  *  一些请求的公共代码逻辑

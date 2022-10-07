@@ -1,7 +1,7 @@
-package com.chencc.permissionx.request
+package com.jessi.permissionx.request
 
 import android.util.Log
-import com.chencc.permissionx.PermissionBuilder
+import com.jessi.permissionx.PermissionBuilder
 
 
 /**

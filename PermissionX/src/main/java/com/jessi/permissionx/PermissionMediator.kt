@@ -1,12 +1,12 @@
-package com.chencc.permissionx
+package com.jessi.permissionx
 
 import android.app.Activity
 import android.os.Build
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
-import com.chencc.permissionx.constant.allSpecialPermissions
-import com.chencc.permissionx.request.RequestBackgroundLocationPermission
-import com.chencc.permissionx.request.RequestBodySensorsBackgroundPermission
+import com.jessi.permissionx.constant.allSpecialPermissions
+import com.jessi.permissionx.request.RequestBackgroundLocationPermission
+import com.jessi.permissionx.request.RequestBodySensorsBackgroundPermission
 
 class PermissionMediator {
     private var activity: FragmentActivity? = null
@@ -21,7 +21,7 @@ class PermissionMediator {
         this.fragment = fragment
     }
 
-    fun permissions(permissions : List<String>) : PermissionBuilder{
+    fun permissions(permissions : List<String>) : PermissionBuilder {
         // 普通权限
         val normalPermissionSet = LinkedHashSet<String>()
         // 需要特殊处理的特殊权限

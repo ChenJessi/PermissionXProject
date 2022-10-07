@@ -1,6 +1,6 @@
-package com.chencc.permissionx.request
+package com.jessi.permissionx.request
 
-import com.chencc.permissionx.PermissionBuilder
+import com.jessi.permissionx.PermissionBuilder
 
 /**
  * 封装了  ExplainReasonCallback 和 ExplainReasonCallbackWithBeforeParam

@@ -1,11 +1,11 @@
-package com.chencc.permissionx.constant
+package com.jessi.permissionx.constant
 
 import android.Manifest
-import com.chencc.permissionx.PermissionX
-import com.chencc.permissionx.request.RequestBackgroundLocationPermission
-import com.chencc.permissionx.request.RequestBodySensorsBackgroundPermission
-import com.chencc.permissionx.request.RequestInstallPackagesPermission
-import com.chencc.permissionx.request.RequestManageExternalStoragePermission
+import com.jessi.permissionx.PermissionX
+import com.jessi.permissionx.request.RequestBackgroundLocationPermission
+import com.jessi.permissionx.request.RequestBodySensorsBackgroundPermission
+import com.jessi.permissionx.request.RequestInstallPackagesPermission
+import com.jessi.permissionx.request.RequestManageExternalStoragePermission
 
 
 /**
