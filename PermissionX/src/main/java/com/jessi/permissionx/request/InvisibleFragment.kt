@@ -2,9 +2,11 @@ package com.jessi.permissionx.request
 
 import android.os.Handler
 import android.os.Looper
+import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
 import com.jessi.permissionx.PermissionBuilder
+import com.jessi.permissionx.PermissionX
 
 class InvisibleFragment : Fragment() {
     companion object {
@@ -64,7 +66,74 @@ class InvisibleFragment : Fragment() {
      * @param grantResults Map<String, Boolean>
      */
     private fun onRequestNormalPermissionsResult(grantResults: Map<String, Boolean>) {
+        if (checkForGC()){
+            // 清空已授予的权限
+            // 安全起见，我们不能保留已授予的权限，用户有可能在设置中关闭这些权限
+            // 每次请求时，都必须再次请求已授予的权限，并刷新已授予的权限集合
+            pb.grantedPermissions.clear()
 
+            // 需要展示请求原因的权限集合
+            val showReasonList = mutableListOf<String>()
+            // 已永久拒绝的权限集合
+            val forwardList = mutableListOf<String>()
+            for ((permission, granted) in grantResults){
+                if(granted){
+                    // 已授予的权限
+                    pb.grantedPermissions.add(permission)
+                    // 在 PermissionBuilder 的 deniedPermissions 和 permanentDeniedPermissions 集合中删除已授予的权限
+                    pb.deniedPermissions.remove(permission)
+                    pb.permanentDeniedPermissions.remove(permission)
+                }else {
+                    // 拒绝的权限
+                    // 被拒绝的权限有可能变成永久拒绝的权限， 但永久拒绝但权限不能转为拒绝但权限
+                    val shouldShowRationale = shouldShowRequestPermissionRationale(permission)
+                    // 是否需要显示请求原因
+                    if (shouldShowRationale){
+                        showReasonList.add(permission)
+                        pb.deniedPermissions.add(permission)
+                    }else {
+                        // 权限被拒绝并且不需要 解释拒绝原因，说明该权限被永久拒绝
+                        forwardList.add(permission)
+                        pb.permanentDeniedPermissions.add(permission)
+                        pb.deniedPermissions.remove(permission)
+                    }
+                }
+            }
+            // 对拒绝对权限再次校验
+            // deniedPermissions 和 permanentDeniedPermissions
+            val deniedPermissions = mutableListOf<String>()
+            deniedPermissions.addAll(pb.deniedPermissions)
+            deniedPermissions.addAll(pb.permanentDeniedPermissions)
+            for (permission in deniedPermissions){
+                if (PermissionX.isGranted(requireContext(), permission)){
+                    pb.deniedPermissions.remove(permission)
+                    pb.permanentDeniedPermissions.remove(permission)
+                    pb.grantedPermissions.add(permission)
+                }
+            }
+
+            val allGranted = pb.grantedPermissions.size == pb.normalPermissions.size
+
+
+
+        }
 
     }
+
+    /**
+     *  检测 PermissionBuilder ChainTask 是否有效，防止某些意外情况发生
+     * @return Boolean
+     */
+    private fun checkForGC() : Boolean{
+
+        if(!::pb.isInitialized || !::task.isInitialized){
+            Log.w(
+                "PermissionX",
+                "PermissionBuilder and ChainTask should not be null at this time, so we can do nothing in this case."
+            )
+            return false
+        }
+        return true
+    }
+
 }

@@ -12,7 +12,6 @@ import android.provider.Settings
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.FragmentManager
-import com.chencc.permissionx.request.*
 import com.jessi.permissionx.request.RequestInstallPackagesPermission
 import com.jessi.permissionx.request.RequestManageExternalStoragePermission
 import com.jessi.permissionx.request.RequestNormalPermissions
@@ -95,6 +94,11 @@ class PermissionBuilder (
      * 拒绝的权限集合
      */
     val deniedPermissions : MutableSet<String> = LinkedHashSet()
+
+    /**
+     * 永久拒绝的权限集合
+     */
+    val permanentDeniedPermissions : MutableSet<String> = LinkedHashSet()
 
 
     private val fragmentManager: FragmentManager
