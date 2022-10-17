@@ -29,12 +29,11 @@ class InvisibleFragment : Fragment() {
      * 请求多个权限接收结果
      */
     private val requestNormalPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()){ grantResults ->
+        registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { grantResults ->
             postForResult {
                 onRequestNormalPermissionsResult(grantResults);
             }
         }
-
 
 
     /**
@@ -54,7 +53,7 @@ class InvisibleFragment : Fragment() {
     }
 
 
-    private fun postForResult(callback: ()->Unit){
+    private fun postForResult(callback: () -> Unit) {
         handler.post {
             callback()
         }
@@ -66,7 +65,7 @@ class InvisibleFragment : Fragment() {
      * @param grantResults Map<String, Boolean>
      */
     private fun onRequestNormalPermissionsResult(grantResults: Map<String, Boolean>) {
-        if (checkForGC()){
+        if (checkForGC()) {
             // 清空已授予的权限
             // 安全起见，我们不能保留已授予的权限，用户有可能在设置中关闭这些权限
             // 每次请求时，都必须再次请求已授予的权限，并刷新已授予的权限集合
@@ -76,22 +75,22 @@ class InvisibleFragment : Fragment() {
             val showReasonList = mutableListOf<String>()
             // 已永久拒绝的权限集合
             val forwardList = mutableListOf<String>()
-            for ((permission, granted) in grantResults){
-                if(granted){
+            for ((permission, granted) in grantResults) {
+                if (granted) {
                     // 已授予的权限
                     pb.grantedPermissions.add(permission)
                     // 在 PermissionBuilder 的 deniedPermissions 和 permanentDeniedPermissions 集合中删除已授予的权限
                     pb.deniedPermissions.remove(permission)
                     pb.permanentDeniedPermissions.remove(permission)
-                }else {
+                } else {
                     // 拒绝的权限
                     // 被拒绝的权限有可能变成永久拒绝的权限， 但永久拒绝但权限不能转为拒绝但权限
                     val shouldShowRationale = shouldShowRequestPermissionRationale(permission)
                     // 是否需要显示请求原因
-                    if (shouldShowRationale){
+                    if (shouldShowRationale) {
                         showReasonList.add(permission)
                         pb.deniedPermissions.add(permission)
-                    }else {
+                    } else {
                         // 权限被拒绝并且不需要 解释拒绝原因，说明该权限被永久拒绝
                         forwardList.add(permission)
                         pb.permanentDeniedPermissions.add(permission)
@@ -104,8 +103,8 @@ class InvisibleFragment : Fragment() {
             val deniedPermissions = mutableListOf<String>()
             deniedPermissions.addAll(pb.deniedPermissions)
             deniedPermissions.addAll(pb.permanentDeniedPermissions)
-            for (permission in deniedPermissions){
-                if (PermissionX.isGranted(requireContext(), permission)){
+            for (permission in deniedPermissions) {
+                if (PermissionX.isGranted(requireContext(), permission)) {
                     pb.deniedPermissions.remove(permission)
                     pb.permanentDeniedPermissions.remove(permission)
                     pb.grantedPermissions.add(permission)
@@ -113,8 +112,48 @@ class InvisibleFragment : Fragment() {
             }
 
             val allGranted = pb.grantedPermissions.size == pb.normalPermissions.size
+            if (allGranted) {
+                // 所有权限都已经授权，结束当前任务
+                task.finish()
+            } else {
+                // 当前任务是否要完成
+                var shouldFinishTheTask = true
 
+                if ((pb.explainReasonCallback != null || pb.explainReasonCallbackWithBeforeParam != null) && showReasonList.isNotEmpty()) {
+                    // 有 请求原因回调 并且 存在 需要展示请求原因的权限
+                    shouldFinishTheTask = false;
+                    if (pb.explainReasonCallbackWithBeforeParam != null) {
+                        pb.explainReasonCallbackWithBeforeParam?.invoke(
+                            task.getExplainScope(),
+                            pb.deniedPermissions.toMutableList(),
+                            false
+                        )
+                    } else {
+                        pb.explainReasonCallback?.invoke(
+                            task.getExplainScope(),
+                            pb.deniedPermissions.toMutableList()
+                        )
+                    }
 
+                    //todo
+                    pb.tempPermanentDeniedPermissions.addAll(forwardList)
+                } else if(pb.forwardToSettingsCallback != null && (forwardList.isNotEmpty() || pb.tempPermanentDeniedPermissions.isNotEmpty())){
+                    shouldFinishTheTask = false
+                    pb.tempPermanentDeniedPermissions.clear()
+                    pb.forwardToSettingsCallback?.invoke(task.getForwardScope(), pb.permanentDeniedPermissions.toMutableList())
+
+                }
+                /**
+                 * 如果没有调用 showRequestReasonDialog 或者 showForwardToSettingsDialog，直接结束当前任务
+                 * 特殊情况:如果调用了[PermissionBuilder.onExplainRequestReason] 或 [PermissionBuilder.forwardToSettingsCallback],
+                 * 但是没有调用 showRequestReasonDialog or showForwardToSettingsDialog，也结束当前任务
+                 */
+                if(shouldFinishTheTask || !pb.showDialogCalled){
+                    task.finish()
+                }
+                //
+                pb.showDialogCalled = false
+            }
 
         }
 
@@ -124,9 +163,9 @@ class InvisibleFragment : Fragment() {
      *  检测 PermissionBuilder ChainTask 是否有效，防止某些意外情况发生
      * @return Boolean
      */
-    private fun checkForGC() : Boolean{
+    private fun checkForGC(): Boolean {
 
-        if(!::pb.isInitialized || !::task.isInitialized){
+        if (!::pb.isInitialized || !::task.isInitialized) {
             Log.w(
                 "PermissionX",
                 "PermissionBuilder and ChainTask should not be null at this time, so we can do nothing in this case."

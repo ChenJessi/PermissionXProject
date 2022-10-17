@@ -18,7 +18,7 @@ import com.jessi.permissionx.request.RequestNormalPermissions
 import com.jessi.permissionx.request.*
 import com.jessi.permissionx.request.RequestBackgroundLocationPermission
 import com.jessi.permissionx.request.RequestBodySensorsBackgroundPermission
-import java.util.LinkedHashSet
+import kotlin.collections.LinkedHashSet
 
 /**
  * 提供 PermissionX 的 api
@@ -53,6 +53,15 @@ class PermissionBuilder (
         this.specialPermissions = specialPermissionsSet
     }
 
+    /**
+     * 表示 [ExplainScope.showRequestReasonDialog] or [ForwardScope.showForwardToSettingsDialog]
+     *  在 [.onExplainRequestReason] or [.onForwardToSettings] 回调中调用.
+     * 如果没有调用，则将自动调用 [PermissionX.requestCallback]
+     */
+    @JvmField
+    var showDialogCalled = false
+
+
     // 是否在请求之前展示请求原因都弹窗
     @JvmField
     var explainReasonBeforeRequest = false;
@@ -76,7 +85,7 @@ class PermissionBuilder (
     @JvmField
     var explainReasonCallbackWithBeforeParam : ((ExplainScope, List<String>, Boolean)->Unit)? = null
 
-
+    @JvmField
     var requestCallback : ((Boolean, List<String>, List<String>)->Unit)? = null
 
     /**
@@ -99,6 +108,20 @@ class PermissionBuilder (
      * 永久拒绝的权限集合
      */
     val permanentDeniedPermissions : MutableSet<String> = LinkedHashSet()
+
+    /**
+     * 永久拒绝的权限
+     */
+    val tempPermanentDeniedPermissions : MutableSet<String> = LinkedHashSet()
+
+
+    /**
+     * [onForwardToSettings] 方法的回调
+     * 部分权限或者永久拒绝的权限需要跳转到设置里手动打开
+     */
+    @JvmField
+    var forwardToSettingsCallback : ((ForwardScope, deniedList:List<String>)->Unit)? = null
+
 
 
     private val fragmentManager: FragmentManager
@@ -123,8 +146,6 @@ class PermissionBuilder (
                 }
             }
 
-
-
     /**
      * @param allGranted 是否授予了所有权限,
      * @param grantedList 已授予的权限列表,
@@ -135,6 +156,61 @@ class PermissionBuilder (
         requestCallback = callback;
         startRequest()
     }
+
+
+    /**
+     * 立即请求权限
+     * @param permissions Set<String>  权限集合
+     * @param chainTask ChainTask 当前的请求任务
+     */
+    fun requestNow(permissions : Set<String>, chainTask: ChainTask){
+        invisibleFragment.requestNow(this, permissions, chainTask)
+    }
+
+
+    /**
+     * 当权限需要解释请求原因时调用
+     * 一般当用户拒绝请求时，都需要调用该方法
+     * 如果调用了 [explainReasonBeforeRequest] 则此方法会在请求之前调用
+     * @param block Function2<ExplainScope, List<String>, Unit>
+     * @return PermissionBuilder
+     */
+    fun onExplainRequestReason(block : (ExplainScope, List<String>)->Unit): PermissionBuilder{
+        this.explainReasonCallback = block
+        return this
+    }
+
+    /**
+     * 当权限需要解释请求原因时调用
+     * 一般当用户拒绝请求时，都需要调用该方法
+     * 如果调用了 [explainReasonBeforeRequest] 则此方法会在请求之前调用
+     * beforeRequest:该方法位于请求回调之前 or 之后
+     * @param block Function2<ExplainScope, List<String>, Boolean ,Unit>
+     *     Function2<ExplainScope, deniedList, beforeRequest>
+     * @return PermissionBuilder
+     */
+    fun onExplainRequestReason(block : (ExplainScope, List<String>, Boolean)->Unit): PermissionBuilder{
+        this.explainReasonCallbackWithBeforeParam = block
+        return this
+    }
+
+
+
+    /**
+     * 某些权限和永久拒绝的权限需要跳转到设置页面手动打开
+     * @param block Function2<ForwardScope, [@kotlin.ParameterName] List<String>, Unit>
+     * 注意[onExplainRequestReason] 优先级高于此方法
+     * 如果调用了[onExplainRequestReason]，则不会再调用此方法
+     * @return PermissionBuilder
+     */
+    fun onForwardToSettings(block : ((ForwardScope, deniedList:List<String>)->Unit)):PermissionBuilder{
+        forwardToSettingsCallback = block
+        return this
+    }
+
+
+
+
 
 
     private fun startRequest(){
@@ -152,18 +228,6 @@ class PermissionBuilder (
 
         requestChain.runTask()
     }
-
-    /**
-     * 立即请求权限
-     * @param permissions Set<String>  权限集合
-     * @param chainTask ChainTask 当前的请求任务
-     */
-    fun requestNow(permissions : Set<String>, chainTask: ChainTask){
-        invisibleFragment.requestNow(this, permissions, chainTask)
-    }
-
-
-
 
 
     /**

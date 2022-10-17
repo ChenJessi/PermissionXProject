@@ -12,6 +12,8 @@ interface ChainTask {
      * @return ExplainScope
      */
     fun getExplainScope() : ExplainScope
+
+    fun getForwardScope() : ForwardScope
     /**
      * 执行请求的逻辑
      */

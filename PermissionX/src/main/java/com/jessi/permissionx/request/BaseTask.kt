@@ -21,6 +21,13 @@ internal abstract class BaseTask(@JvmField var pb : PermissionBuilder) : ChainTa
 
     override fun getExplainScope() = explainReasonScope
 
+    /**
+     * Provide specific scopes for forwardToSettingsCallback for specific functions to call.
+     */
+    private var forwardToSettingsScope = ForwardScope(pb, this)
+
+    override fun getForwardScope() = forwardToSettingsScope
+
     override fun finish() {
 
     }
