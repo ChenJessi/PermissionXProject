@@ -151,6 +151,7 @@ class InvisibleFragment : Fragment() {
                 if(shouldFinishTheTask || !pb.showDialogCalled){
                     task.finish()
                 }
+                //showDialogCalled 每次请求后都重置 showDialogCalled
                 //
                 pb.showDialogCalled = false
             }

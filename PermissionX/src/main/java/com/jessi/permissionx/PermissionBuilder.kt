@@ -253,4 +253,17 @@ class PermissionBuilder (
      *  @return 如果需要发送通知权限，返回true， 否则返回false
      */
     fun shouldRequestNotificationPermission() = specialPermissions.contains(PermissionX.POST_NOTIFICATIONS)
+
+
+
+    fun showHandlePermissionDialog(
+        chainTask: ChainTask,
+        showReasonOrGoSettings: Boolean,
+        permissions: List<String>,
+        message: String,
+        positiveText: String,
+        negativeText: String?
+    ){
+
+    }
 }
