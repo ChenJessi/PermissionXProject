@@ -1,7 +1,12 @@
 package com.jessi.permissionx.request
 
+import android.content.Intent
+import android.media.audiofx.BassBoost
+import android.net.Uri
 import android.os.Handler
 import android.os.Looper
+import android.provider.Settings
+import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -35,7 +40,15 @@ class InvisibleFragment : Fragment() {
             }
         }
 
-
+    /**
+     * 从设置页面返回时,获取请求结果
+     */
+    private val forwardToSettingsLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) {
+            if (checkForGC()) {
+                task.requestAgain(ArrayList(pb.forwardPermissions))
+            }
+        }
     /**
      *
      * @param permissionBuilder PermissionBuilder
@@ -51,6 +64,21 @@ class InvisibleFragment : Fragment() {
         task = chainTask
         requestNormalPermissionLauncher.launch(permissions.toTypedArray())
     }
+
+    /**
+     * 跳转到设置页面手动打开权限
+     */
+    fun forwardToSettings(){
+        val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+        val uri = Uri.fromParts("package", requireActivity().packageName, null)
+        intent.data = uri
+        forwardToSettingsLauncher.launch(intent)
+    }
+
+
+
+
+
 
 
     private fun postForResult(callback: () -> Unit) {

@@ -59,6 +59,13 @@ class DefaultDialog(
     }
 
     /**
+     * 检查权限布局是否为null
+     * @return Boolean
+     */
+    internal fun isPermissionLayoutEmpty() = binding.permissionsLayout.childCount == 0
+
+
+    /**
      * 设置对话框的文本和样式
      */
     private fun setupText() {
