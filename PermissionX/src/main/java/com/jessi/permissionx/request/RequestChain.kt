@@ -24,12 +24,12 @@ class RequestChain {
         if(headTask == null){
             headTask = task
         }
-        else {
-            task.next = tailTask
-            tailTask = task
-        }
-//        tailTask?.next = task
-//        tailTask = task
+//        else {
+//            task.next = tailTask
+//            tailTask = task
+//        }
+        tailTask?.next = task
+        tailTask = task
     }
 
     /**

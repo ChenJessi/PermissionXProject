@@ -1,5 +1,6 @@
 package com.jessi.permissionx
 
+import android.Manifest
 import android.app.Activity
 import android.app.AlertDialog
 import android.app.Dialog
@@ -57,6 +58,8 @@ class PermissionBuilder(
         this.normalPermissions = normalPermissionSet
         this.specialPermissions = specialPermissionsSet
     }
+    val targetSdkVersion: Int
+        get() = activity.applicationInfo.targetSdkVersion
 
     /**
      * 表示 [ExplainScope.showRequestReasonDialog] or [ForwardScope.showForwardToSettingsDialog]
@@ -120,7 +123,10 @@ class PermissionBuilder(
      */
     val tempPermanentDeniedPermissions: MutableSet<String> = LinkedHashSet()
 
-
+    /**
+     * 一些不应该请求的权限
+     */
+    val permissionsWontRequest: MutableSet<String> = LinkedHashSet()
     /**
      * [onForwardToSettings] 方法的回调
      * 部分权限或者永久拒绝的权限需要跳转到设置里手动打开
@@ -180,7 +186,7 @@ class PermissionBuilder(
      * @param callback Function3<Boolean, List<String>, List<String>, Unit>
      */
     fun request(callback: (allGranted :Boolean, grantedList:List<String>, deniedList:List<String>) -> Unit) {
-        requestCallback = callback;
+        requestCallback = callback
         startRequest()
     }
 
@@ -246,7 +252,7 @@ class PermissionBuilder(
         lockOrientation()
 
         // 创建请求任务链， 先请求 RequestNormalPermissions 普通权限，再请求 RequestBackgroundLocationPermission
-        val requestChain = RequestChain();
+        val requestChain = RequestChain()
         requestChain.addTaskToChain(RequestNormalPermissions(this))
         requestChain.addTaskToChain(RequestBackgroundLocationPermission(this))
         requestChain.addTaskToChain(RequestManageExternalStoragePermission(this))
@@ -282,6 +288,54 @@ class PermissionBuilder(
     fun shouldRequestNotificationPermission() =
         specialPermissions.contains(PermissionX.POST_NOTIFICATIONS)
 
+
+    fun shouldRequestBackgroundLocationPermission() =
+        specialPermissions.contains(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+
+    /**
+     * Should we request SYSTEM_ALERT_WINDOW permission or not.
+     *
+     * @return True if specialPermissions contains SYSTEM_ALERT_WINDOW permission, false otherwise.
+     */
+    fun shouldRequestSystemAlertWindowPermission(): Boolean {
+        return specialPermissions.contains(Manifest.permission.SYSTEM_ALERT_WINDOW)
+    }
+
+    /**
+     * Should we request WRITE_SETTINGS permission or not.
+     *
+     * @return True if specialPermissions contains WRITE_SETTINGS permission, false otherwise.
+     */
+    fun shouldRequestWriteSettingsPermission(): Boolean {
+        return specialPermissions.contains(Manifest.permission.WRITE_SETTINGS)
+    }
+
+    /**
+     * Should we request MANAGE_EXTERNAL_STORAGE permission or not.
+     *
+     * @return True if specialPermissions contains MANAGE_EXTERNAL_STORAGE permission, false otherwise.
+     */
+    fun shouldRequestManageExternalStoragePermission(): Boolean {
+        return specialPermissions.contains(RequestManageExternalStoragePermission.MANAGE_EXTERNAL_STORAGE)
+    }
+
+    /**
+     * Should we request REQUEST_INSTALL_PACKAGES permission or not.
+     *
+     * @return True if specialPermissions contains REQUEST_INSTALL_PACKAGES permission, false otherwise.
+     */
+    fun shouldRequestInstallPackagesPermission(): Boolean {
+        return specialPermissions.contains(RequestInstallPackagesPermission.REQUEST_INSTALL_PACKAGES)
+    }
+
+    /**
+     * Should we request the specific special permission or not.
+     *
+     * @return True if specialPermissions contains BODY_SENSORS_BACKGROUND permission, false otherwise.
+     */
+    fun shouldRequestBodySensorsBackgroundPermission(): Boolean {
+        return specialPermissions.contains(RequestBodySensorsBackgroundPermission.BODY_SENSORS_BACKGROUND)
+    }
     /**
      * 设置请求弹窗的文本颜色
      * @param lightColor Int
@@ -384,5 +438,9 @@ class PermissionBuilder(
         forwardPermissions.clear()
         forwardPermissions.addAll(permissions)
         invisibleFragment.forwardToSettings()
+    }
+
+    internal fun endRequest(){
+
     }
 }

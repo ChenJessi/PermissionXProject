@@ -163,7 +163,7 @@ class InvisibleFragment : Fragment() {
                         )
                     }
 
-                    //todo
+                    //将这些永久被拒绝的权限存取来，防止再次请求时丢失
                     pb.tempPermanentDeniedPermissions.addAll(forwardList)
                 } else if(pb.forwardToSettingsCallback != null && (forwardList.isNotEmpty() || pb.tempPermanentDeniedPermissions.isNotEmpty())){
                     shouldFinishTheTask = false
@@ -180,7 +180,7 @@ class InvisibleFragment : Fragment() {
                     task.finish()
                 }
                 //showDialogCalled 每次请求后都重置 showDialogCalled
-                //
+                //否则会影响下一个请求逻辑
                 pb.showDialogCalled = false
             }
 
