@@ -25,6 +25,7 @@ internal class RequestNormalPermissions internal constructor(permissionBuilder: 
         // 为空表示所有权限都已授权
         if(requestList.isEmpty()){
             finish()
+            return
         }
         if(pb.explainReasonBeforeRequest &&
             (pb.explainReasonCallback != null || pb.explainReasonCallbackWithBeforeParam != null)){
@@ -51,6 +52,12 @@ internal class RequestNormalPermissions internal constructor(permissionBuilder: 
      */
     override fun requestAgain(permissions: List<String>) {
         val permissionsToRequestAgain: MutableSet<String> = HashSet(pb.grantedPermissions)
+        permissionsToRequestAgain.addAll(permissions)
+        if (permissionsToRequestAgain.isNotEmpty()){
+            pb.requestNow(permissionsToRequestAgain, this)
+        }else {
+            finish()
+        }
 
     }
 

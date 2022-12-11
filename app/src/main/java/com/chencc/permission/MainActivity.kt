@@ -34,9 +34,20 @@ class MainActivity : AppCompatActivity() {
 //                        Toast.makeText(this@MainActivity, "denied :  $deniedList", Toast.LENGTH_LONG).show()
 //                    }
 //                }
-            PermissionBuilder(this, null, mutableSetOf(), mutableSetOf()).request { b, list, list2 ->
-
-            }
+             PermissionX.init(this)
+                 .permissions(Manifest.permission.CAMERA, Manifest.permission.WRITE_EXTERNAL_STORAGE, Manifest.permission.RECORD_AUDIO)
+                 .explainReasonBeforeRequest()
+                 .onExplainRequestReason { explainScope, deniedlist, b ->
+                     Log.e(TAG, "explainReasonCallback:  ${deniedlist}" )
+                     explainScope.showRequestReasonDialog(deniedlist, "请求权限的原因", "确定")
+                 }
+                 .onForwardToSettings { forwardScope, deniedList ->
+                     Log.e(TAG, "explainReasonCallback:  ${deniedList}" )
+                     forwardScope.showForwardToSettingsDialog(deniedList, "跳转到设置打开权限", "确定")
+                 }
+                 .request { allGranted, grantedList, deniedList ->
+                     Log.e(TAG, "request:  ${allGranted}  ${grantedList} ${deniedList}" )
+                 }
         }
     }
 }

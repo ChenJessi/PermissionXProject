@@ -62,7 +62,7 @@ class PermissionMediator {
         return PermissionBuilder(activity, fragment, normalPermissionSet, specialPermissionSet)
     }
 
-    fun permissions(vararg permission: String){
-        permissions(listOf(*permission))
+    fun permissions(vararg permission: String) : PermissionBuilder{
+        return permissions(listOf(*permission))
     }
 }

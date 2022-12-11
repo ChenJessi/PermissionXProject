@@ -69,7 +69,7 @@ class PermissionBuilder(
 
     // 是否在请求之前展示请求原因都弹窗
     @JvmField
-    var explainReasonBeforeRequest = false;
+    internal var explainReasonBeforeRequest = false
 
     /**
      * onExplainRequestReason 的回调
@@ -176,9 +176,10 @@ class PermissionBuilder(
      * @param allGranted 是否授予了所有权限,
      * @param grantedList 已授予的权限列表,
      * @param deniedList 已拒绝的权限列表
+     * @param callback allGranted, grantedList, deniedList
      * @param callback Function3<Boolean, List<String>, List<String>, Unit>
      */
-    fun request(callback: (Boolean, List<String>, List<String>) -> Unit) {
+    fun request(callback: (allGranted :Boolean, grantedList:List<String>, deniedList:List<String>) -> Unit) {
         requestCallback = callback;
         startRequest()
     }
@@ -193,6 +194,11 @@ class PermissionBuilder(
         invisibleFragment.requestNow(this, permissions, chainTask)
     }
 
+
+    fun explainReasonBeforeRequest() : PermissionBuilder{
+        explainReasonBeforeRequest = true
+        return this
+    }
 
     /**
      * 当权限需要解释请求原因时调用
@@ -215,7 +221,7 @@ class PermissionBuilder(
      *     Function2<ExplainScope, deniedList, beforeRequest>
      * @return PermissionBuilder
      */
-    fun onExplainRequestReason(block: (ExplainScope, List<String>, Boolean) -> Unit): PermissionBuilder {
+    fun onExplainRequestReason(block: (ExplainScope, deniedlist:List<String>, beforeRequest:Boolean) -> Unit): PermissionBuilder {
         this.explainReasonCallbackWithBeforeParam = block
         return this
     }
