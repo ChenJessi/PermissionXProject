@@ -430,6 +430,12 @@ class PermissionBuilder(
     }
 
 
+    fun requestAccessBackgroundLocationPermissionNow(chainTask : ChainTask){
+        invisibleFragment.requestAccessBackgroundLocationPermissionNow(this, chainTask)
+    }
+
+
+
     /**
      * 跳转到设置页面手动打开权限
      * @param permissions List<String>

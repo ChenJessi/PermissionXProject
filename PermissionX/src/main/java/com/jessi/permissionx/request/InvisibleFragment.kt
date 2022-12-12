@@ -7,6 +7,7 @@ import android.os.Handler
 import android.os.Looper
 import android.provider.Settings
 import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+import android.system.Os.remove
 import android.util.Log
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.Fragment
@@ -49,6 +50,17 @@ class InvisibleFragment : Fragment() {
                 task.requestAgain(ArrayList(pb.forwardPermissions))
             }
         }
+
+    private val requestBackgroundLocationLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()){ granted ->
+            postForResult {
+                onRequestBackgroundLocationPermissionResult(granted)
+            }
+        }
+
+
+
+
     /**
      *
      * @param permissionBuilder PermissionBuilder
@@ -75,7 +87,14 @@ class InvisibleFragment : Fragment() {
         forwardToSettingsLauncher.launch(intent)
     }
 
-
+    fun requestAccessBackgroundLocationPermissionNow(
+        permissionBuilder: PermissionBuilder,
+        chainTask: ChainTask
+    ){
+        pb = permissionBuilder
+        task = chainTask
+        requestBackgroundLocationLauncher.launch(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+    }
 
 
 
@@ -188,6 +207,45 @@ class InvisibleFragment : Fragment() {
 
     }
 
+    private fun onRequestBackgroundLocationPermissionResult(granted: Boolean) {
+        if(checkForGC()){
+            postForResult {
+                if(granted){
+                    pb.grantedPermissions.add(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+                    pb.deniedPermissions.remove(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+                    pb.permanentDeniedPermissions.remove(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+                    task.finish()
+                }
+                else{
+                    // 是否要结束请求到标记
+                    var goesToRequestCallback = true
+                    val shouldShowRationale =
+                        shouldShowRequestPermissionRationale(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+
+                    if((pb.explainReasonCallback != null && pb.explainReasonCallbackWithBeforeParam != null) && shouldShowRationale){
+                        goesToRequestCallback = false
+
+                        val permissionsToExplain = mutableListOf(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+                        if(pb.explainReasonCallbackWithBeforeParam != null){
+                            pb.explainReasonCallbackWithBeforeParam?.invoke(task.getExplainScope(), permissionsToExplain, false)
+                        }
+                        else {
+                            pb.explainReasonCallback?.invoke(task.getExplainScope(), permissionsToExplain)
+                        }
+                    }
+                    else if(pb.forwardToSettingsCallback != null && !shouldShowRationale){
+                        goesToRequestCallback = false
+                        val permissionsToForward = mutableListOf(RequestBackgroundLocationPermission.ACCESS_BACKGROUND_LOCATION)
+                        pb.forwardToSettingsCallback?.invoke(task.getForwardScope(), permissionsToForward)
+                    }
+                    if(goesToRequestCallback || !pb.showDialogCalled){
+                        task.finish()
+                    }
+                }
+
+            }
+        }
+    }
     /**
      *  检测 PermissionBuilder ChainTask 是否有效，防止某些意外情况发生
      * @return Boolean
